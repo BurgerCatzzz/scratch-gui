@@ -69,18 +69,26 @@ const base = {
         rules: [{
             test: /\.jsx?$/,
             loader: 'babel-loader',
-            include: [
-                path.resolve(__dirname, 'src'),
-                /node_modules[\\/]scratch-[^\\/]+[\\/]src/,
-                /node_modules[\\/]pify/,
-                /node_modules[\\/]@vernier[\\/]godirect/,
-                /node_modules[\\/]htmlparser2/
-            ],
+            include: function (filepath) {
+                // Always include src
+                if (filepath.includes(path.resolve(__dirname, 'src'))) return true;
+                // Include scratch-* packages
+                if (/node_modules[\\/]scratch-[^\\/]+[\\/]/.test(filepath)) return true;
+                // Include @turbowarp/scratch-l10n
+                if (/node_modules[\\/]@turbowarp[\\/]scratch-l10n[\\/]/.test(filepath)) return true;
+                // Include pify, @vernier/godirect, htmlparser2
+                if (/node_modules[\\/]pify/.test(filepath)) return true;
+                if (/node_modules[\\/]@vernier[\\/]godirect/.test(filepath)) return true;
+                if (/node_modules[\\/]htmlparser2/.test(filepath)) return true;
+                return false;
+            },
             options: {
                 // Explicitly disable babelrc so we don't catch various config
                 // in much lower dependencies.
                 babelrc: false,
                 plugins: [
+                    '@babel/plugin-proposal-nullish-coalescing-operator',
+                    '@babel/plugin-proposal-optional-chaining',
                     ['react-intl', {
                         messagesDir: './translations/messages/'
                     }]],
