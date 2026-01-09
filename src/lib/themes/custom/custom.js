@@ -1,8 +1,8 @@
 import PropsTypes from "prop-types"
 
-let costomGUITheme = localStorage.getItem("constomTheme");
-if (costomGUITheme == null) {
-        costomGUITheme = {
+let customGUITheme = localStorage.getItem("constomTheme");
+if (customGUITheme == null) {
+        customGUITheme = {
                 'motion-primary': '#ff4c4c',
                 'motion-primary-transparent': '#ff4c4ce6',
                 'motion-tertiary': '#cc3333',
@@ -20,50 +20,50 @@ if (costomGUITheme == null) {
                 'drop-highlight': '#ff8c8c'
         };
 } else {
-        costomGUITheme = JSON.parse(costomGUITheme);
+        customGUITheme = JSON.parse(customGUITheme);
 }
 
-let costomBlockColors = localStorage.getItem("blockColors");
-if (costomBlockColors == null) {
-        costomBlockColors = {
+let customBlockColors = localStorage.getItem("blockColors");
+if (customBlockColors == null) {
+        customBlockColors = {
                 checkboxActiveBackground: '#ff4c4c',
                 checkboxActiveBorder: '#cc3333'
         };
 } else {
-        costomBlockColors = JSON.parse(costomBlockColors);
+        customBlockColors = JSON.parse(customBlockColors);
 }
 
-const guiColors = costomGUITheme;
-const blockColors = costomBlockColors;
+const guiColors = customGUITheme;
+const blockColors = customBlockColors;
 const setColorTo = (id, value) => {
         console.log(value)
-        if (id == "checkboxActiveBackground" || id == "checkboxActiveBorder") costomBlockColors[id] = value;
-        else costomGUITheme[id] = value;
+        if (id == "checkboxActiveBackground" || id == "checkboxActiveBorder") customBlockColors[id] = value;
+        else customGUITheme[id] = value;
 }
 
 const getColorOf = (id) => {
-        if (id == "checkboxActiveBackground" || id == "checkboxActiveBorder") return (costomBlockColors[id]);
-        else return (costomGUITheme[id]);
+        if (id == "checkboxActiveBackground" || id == "checkboxActiveBorder") return (customBlockColors[id]);
+        else return (customGUITheme[id]);
 }
 
 
 const saveColors = () => {
-        localStorage.setItem("constomTheme", JSON.stringify(costomGUITheme));
-        localStorage.setItem("blockColors", JSON.stringify(costomBlockColors));
+        localStorage.setItem("constomTheme", JSON.stringify(customGUITheme));
+        localStorage.setItem("blockColors", JSON.stringify(customBlockColors));
 
 }
 
 function getAllColor(){
         return { 
-                guiColors: costomGUITheme, 
-                blockColors: costomBlockColors 
+                guiColors: customGUITheme, 
+                blockColors: customBlockColors 
         }
 }
 export {
         guiColors,
         blockColors,
-        costomGUITheme,
-        costomBlockColors,
+        customGUITheme,
+        customBlockColors,
         setColorTo,
         getColorOf,
         saveColors,

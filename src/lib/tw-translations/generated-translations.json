@@ -4945,12 +4945,12 @@
         "tw.usesCloudVariables2.change": "自己的用户名",
         "tw.viewFeaturedProjects": "点击以查看特色作品。",
         "tw.viewOnScratch": "在 Scratch 网站上查看作品",
-        "tw.costomTheme.apply":"应用",
-        "tw.costomTheme.introduction":"您可以自定义界面的主题颜色。在下方输入您偏好的颜色，然后点击“应用”以更新您的主题。",
-        "tw.costomTheme.maincolor.introduction":"选择您中意的颜色，其它颜色会自动补齐",
-        "tw.costomTheme.title": "自定义颜色",
-        "tw.costomTheme.maincolor":"主题颜色",
-        "tw.accent.costom":"自定义"
+        "tw.customTheme.apply":"应用",
+        "tw.customTheme.introduction":"您可以自定义界面的主题颜色。在下方输入您偏好的颜色，然后点击“应用”以更新您的主题。",
+        "tw.customTheme.maincolor.introduction":"选择您中意的颜色，其它颜色会自动补齐",
+        "tw.customTheme.title": "自定义颜色",
+        "tw.customTheme.maincolor":"主题颜色",
+        "tw.accent.custom":"自定义"
         
     },
     "zh-tw": {

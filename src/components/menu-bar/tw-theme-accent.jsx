@@ -12,7 +12,7 @@ import { openAccentMenu, accentMenuOpen, closeSettingsMenu } from '../../reducer
 import { setTheme } from '../../reducers/theme.js';
 import { persistTheme } from '../../lib/themes/themePersistance.js';
 import rainbowIcon from './tw-accent-rainbow.svg';
-import costomIcon from './tw-accent-costom.svg';
+import customIcon from './tw-accent-custom.svg';
 import styles from './settings-menu.css';
 
 import { openCustomTheme } from '../../reducers/modals';
@@ -50,7 +50,7 @@ const options = defineMessages({
     [ACCENT_COSTOM]: {
         defaultMessage: 'Costom',
         description: 'Costom your theme',
-        id: 'tw.accent.costom'
+        id: 'tw.accent.custom'
     },
 
 });
@@ -67,7 +67,7 @@ const ColorIcon = props => (
             // Image is decorative
             alt=""
         />
-    ) : props.id != "costom" ? (
+    ) : props.id != "custom" ? (
         <div
             className={styles.accentIconOuter}
             style={{
@@ -79,7 +79,7 @@ const ColorIcon = props => (
     ) : (
                 <img
                     className={styles.accentIconOuter}
-                    src={costomIcon}
+                    src={customIcon}
                     draggable={false}
                     alt=""
                 />
@@ -147,7 +147,7 @@ const AccentThemeMenu = ({
                     isSelected={theme.accent === item}
                     // eslint-disable-next-line react/jsx-no-bind
                     onClick={() => {
-                        if (item == "costom") onClickCustomThemeModal()
+                        if (item == "custom") onClickCustomThemeModal()
                         else onChangeTheme(theme.set('accent', item))
                     }}
                 />

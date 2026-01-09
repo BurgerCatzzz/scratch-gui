@@ -5,7 +5,7 @@ import * as accentBlue from './accent/blue';
 import * as accentRed from './accent/red';
 import * as accentRainbow from './accent/rainbow';
 import * as accentAE from './accent/astraeditor';
-import * as accentCostom from './costom/costom';
+import * as accentCostom from './custom/custom';
 
 import * as guiLight from './gui/light';
 import * as guiDark from './gui/dark';
@@ -20,7 +20,7 @@ const ACCENT_BLUE = 'blue';
 const ACCENT_RED = 'red';
 const ACCENT_RAINBOW = 'rainbow';
 const ACCENT_AE = 'astraeditor';
-const ACCENT_COSTOM = 'costom';
+const ACCENT_COSTOM = 'custom';
 const ACCENT_MAP = {
     [ACCENT_PURPLE]: accentPurple,
     [ACCENT_BLUE]: accentBlue,

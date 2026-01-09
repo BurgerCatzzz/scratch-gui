@@ -12,12 +12,12 @@ import { connect } from 'react-redux';
 import styles from './custom-theme.css';
 import classNames from 'classnames';
 import {
-    costomGUITheme,
-    costomBlockColors,
+    customGUITheme,
+    customBlockColors,
     setColorTo,
     getColorOf,
     saveColors
-} from "../../lib/themes/costom/costom.js"
+} from "../../lib/themes/custom/custom.js"
 
 function hexToRgb(hex) {
     // 去除 # 符号
@@ -48,8 +48,8 @@ function rgbToHex(r, g, b) {
 const messages = defineMessages({
     title: {
         defaultMessage: 'Costom Theme',
-        description: 'Title of costom theme modal',
-        id: 'tw.costomTheme.title'
+        description: 'Title of custom theme modal',
+        id: 'tw.customTheme.title'
     }
 });
 
@@ -121,19 +121,19 @@ const ThemeColor = props => (
     <SelectBox
         {...props}
         id="main-color"
-        value={costomGUITheme['motion-primary'] || '#ff4c4c'}
+        value={customGUITheme['motion-primary'] || '#ff4c4c'}
         title={
             <FormattedMessage
                 defaultMessage="Theme Color"
                 description="gui-theme-color"
-                id="tw.costomTheme.maincolor"
+                id="tw.customTheme.maincolor"
             />
         }
         intro={
             <FormattedMessage
                 defaultMessage="Choose the color you like, and other colors will be automatically filled in"
                 description="gui-theme-color-intro"
-                id="tw.costomTheme.maincolor.introduction"
+                id="tw.customTheme.maincolor.introduction"
             />
         }
         onChangeColor={(e) => {
@@ -151,7 +151,7 @@ SelectBox.prototype = {
 
 const updateColor = (currentTheme, onChangeTheme) => {
     saveColors();
-    const newTheme = currentTheme.set('accent', 'costom');
+    const newTheme = currentTheme.set('accent', 'custom');
     onChangeTheme(newTheme);
 }
 const CustomModalComponent = props => (
@@ -165,8 +165,8 @@ const CustomModalComponent = props => (
             <div className={styles.content}>
                 <FormattedMessage
                     defaultMessage="You can customize the theme colors for the interface. Enter your preferred color below and click 'Apply' to update your theme."
-                    description="introduction of costom theme modal"
-                    id="tw.costomTheme.introduction"
+                    description="introduction of custom theme modal"
+                    id="tw.customTheme.introduction"
                 />
                 <br />
                 <ThemeColor />
@@ -179,7 +179,7 @@ const CustomModalComponent = props => (
                     <FormattedMessage
                         defaultMessage="Apply"
                         description="Apply Button"
-                        id="tw.costomTheme.apply"
+                        id="tw.customTheme.apply"
                     />
                 </button>
             </div>

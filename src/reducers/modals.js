@@ -19,6 +19,7 @@ const MODAL_FONTS = 'fontsModal';
 const MODAL_UNKNOWN_PLATFORM = 'unknownPlatformModal';
 const MODAL_INVALID_PROJECT = 'invalidProjectModal';
 const MODAL_CUSTOM_THEME = 'customtheme';
+const MODAL_README = 'readme';
 
 
 const initialState = {
@@ -38,7 +39,8 @@ const initialState = {
     [MODAL_RESTORE_POINTS]: false,
     [MODAL_FONTS]: false,
     [MODAL_UNKNOWN_PLATFORM]: false,
-    [MODAL_INVALID_PROJECT]: false
+    [MODAL_INVALID_PROJECT]: false,
+    [MODAL_README]: false
 };
 
 const reducer = function (state, action) {
@@ -119,6 +121,12 @@ const openRestorePointModal = function () {
 const openFontsModal = function () {
     return openModal(MODAL_FONTS);
 };
+const openReadme = function () {
+    return openModal(MODAL_README);
+};
+const closeReadme = function() {
+    return closeModal(MODAL_README);
+}
 const openUnknownPlatformModal = function () {
     return openModal(MODAL_UNKNOWN_PLATFORM);
 };
@@ -197,6 +205,8 @@ export {
     openCustomTheme,
     openUnknownPlatformModal,
     openInvalidProjectModal,
+    openReadme,
+    closeReadme,
     closeBackdropLibrary,
     closeCostumeLibrary,
     closeExtensionLibrary,

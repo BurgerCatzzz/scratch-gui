@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import omit from 'lodash.omit';
 import PropTypes from 'prop-types';
-import React from 'react';
-import {defineMessages, FormattedMessage, injectIntl, intlShape} from 'react-intl';
-import {connect} from 'react-redux';
+import React, { useState, useEffect } from 'react';
+import { defineMessages, FormattedMessage, injectIntl, intlShape } from 'react-intl';
+import { connect, dispatch } from 'react-redux';
 import MediaQuery from 'react-responsive';
-import {Tab, Tabs, TabList, TabPanel} from 'react-tabs';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import tabStyles from 'react-tabs/style/react-tabs.css';
 import VM from 'scratch-vm';
 
@@ -39,12 +39,14 @@ import TWUnknownPlatformModal from '../../containers/tw-unknown-platform-modal.j
 import TWInvalidProjectModal from '../../containers/tw-invalid-project-modal.jsx';
 import TWWindChimeSubmitter from '../../containers/tw-windchime-submitter.jsx';
 import CustomThemeModal from '../../containers/tw-custom-theme-modal.jsx';
+import AEReadMe from '../../containers/ae-readme.jsx'
+import { loadData } from 'C:/AstraEditor/scratch-gui/src/components/ae-readme/ae-readme.jsx'
 
-import {STAGE_SIZE_MODES, FIXED_WIDTH, UNCONSTRAINED_NON_STAGE_WIDTH} from '../../lib/layout-constants';
-import {resolveStageSize} from '../../lib/screen-utils';
-import {Theme} from '../../lib/themes';
+import { STAGE_SIZE_MODES, FIXED_WIDTH, UNCONSTRAINED_NON_STAGE_WIDTH } from '../../lib/layout-constants';
+import { resolveStageSize } from '../../lib/screen-utils';
+import { Theme } from '../../lib/themes';
 
-import {isRendererSupported, isBrowserSupported} from '../../lib/tw-environment-support-prober';
+import { isRendererSupported, isBrowserSupported } from '../../lib/tw-environment-support-prober';
 
 import styles from './gui.css';
 import addExtensionIcon from './icon--extensions.svg';
@@ -52,6 +54,8 @@ import codeIcon from '!../../lib/tw-recolor/build!./icon--code.svg';
 import costumesIcon from '!../../lib/tw-recolor/build!./icon--costumes.svg';
 import soundsIcon from '!../../lib/tw-recolor/build!./icon--sounds.svg';
 import customTheme from '../ae-custom-theme/custom-theme.jsx';
+import { openReadme } from '../../reducers/modals.js';
+import aeReadme from '../ae-readme/ae-readme.jsx';
 
 const messages = defineMessages({
     addExtension: {
@@ -163,8 +167,51 @@ const GUIComponent = props => {
         invalidProjectModalVisible,
         vm,
         customThemeVisible,
+        readmeModalVisible,
+        onOpenReadme,
         ...componentProps
     } = omit(props, 'dispatch');
+    const updateCanShowReadme = () => {
+        if (!vm.editingTarget || !vm.editingTarget.comments) {
+            setCanShowReadme(false);
+            return;
+        }
+        const comments = Object.values(vm.editingTarget.comments);
+        const readMe = [];
+        comments.forEach(comment => {
+            if (comment.text && comment.text.slice(0, 7) === "#README") {
+                readMe.push(comment.text.slice(8, comment.text.length));
+            }
+        });
+        return readMe.length != 0;
+    };
+    const [canShowReadme, setCanShowReadme] = useState(() => { updateCanShowReadme })
+    useEffect(() => {
+        if (!vm) return;
+
+        const handleCommentEvent = (e) => {
+            setCanShowReadme(updateCanShowReadme)
+        };
+        const showReadmeDefault = (e) => {
+            for (const target of vm.runtime.targets) {
+                if (target.sprite.name == "README") {
+                    loadData(target.comments);
+                    onOpenReadme()
+                    break
+                }
+            }
+        }
+
+        vm.runtime.on('PROJECT_CHANGED', handleCommentEvent);
+        vm.runtime.on('PROJECT_LOADED', handleCommentEvent);
+        vm.runtime.on('PROJECT_LOADED', showReadmeDefault);
+        return () => {
+            vm.runtime.off('PROJECT_CHANGED', handleCommentEvent);
+            vm.runtime.off('PROJECT_LOADED', handleCommentEvent);
+            vm.runtime.off('PROJECT_LOADED', showReadmeDefault);
+        };
+    }, [vm]);
+
     if (children) {
         return <Box {...componentProps}>{children}</Box>;
     }
@@ -198,6 +245,7 @@ const GUIComponent = props => {
                 {unknownPlatformModalVisible && <TWUnknownPlatformModal />}
                 {invalidProjectModalVisible && <TWInvalidProjectModal />}
                 {customThemeVisible && <CustomThemeModal />}
+                {readmeModalVisible && <AEReadMe />}
             </React.Fragment>
         );
 
@@ -390,6 +438,25 @@ const GUIComponent = props => {
                                             id="gui.gui.soundsTab"
                                         />
                                     </Tab>
+
+                                    <div className='findBar' style={{
+                                        marginTop: "auto",
+                                        marginBottom: "auto" //垂直居中
+                                    }}>
+                                        {/*这里是搜索栏*/}
+                                    </div>
+                                    {canShowReadme &&
+                                        <button
+                                            className={styles.readmeButton}
+                                            style={{
+                                                margin: "auto",
+                                                marginLeft: "20px"
+                                            }}
+                                            onClick={onOpenReadme}
+                                        >
+                                            README
+                                        </button>}
+
                                 </TabList>
                                 <TabPanel className={tabClassNames.tabPanel}>
                                     <Box className={styles.blocksWrapper}>
@@ -460,7 +527,9 @@ const GUIComponent = props => {
         );
     }}</MediaQuery>);
 };
-
+const mapDispatchToProps = dispatch => ({
+    onOpenReadme: () => dispatch(openReadme())
+})
 GUIComponent.propTypes = {
     accountNavOpen: PropTypes.bool,
     activeTabIndex: PropTypes.number,
@@ -580,9 +649,11 @@ const mapStateToProps = state => ({
     blocksId: state.scratchGui.timeTravel.year.toString(),
     stageSizeMode: state.scratchGui.stageSize.stageSize,
     theme: state.scratchGui.theme.theme,
-    customThemeVisible: state.scratchGui.modals.customtheme
+    customThemeVisible: state.scratchGui.modals.customtheme,
+    readmeModalVisible: state.scratchGui.modals.readme
 });
 
 export default injectIntl(connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(GUIComponent));
