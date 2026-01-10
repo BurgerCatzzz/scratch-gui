@@ -93,7 +93,7 @@ const CustomModalComponent = (props) => {
                         ))}
                     </div>
                     <ReactMarkdown className={styles.body}>
-                        {readMe[nowTab].text}
+                        {readMe[nowTab].text.replaceAll('\n','\n\n')}
                     </ReactMarkdown>
                 </Box>
 

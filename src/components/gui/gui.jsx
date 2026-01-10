@@ -53,10 +53,10 @@ import addExtensionIcon from './icon--extensions.svg';
 import codeIcon from '!../../lib/tw-recolor/build!./icon--code.svg';
 import costumesIcon from '!../../lib/tw-recolor/build!./icon--costumes.svg';
 import soundsIcon from '!../../lib/tw-recolor/build!./icon--sounds.svg';
-import customTheme from '../ae-custom-theme/custom-theme.jsx';
 import { openReadme } from '../../reducers/modals.js';
-import aeReadme from '../ae-readme/ae-readme.jsx';
 
+import { AESettings } from '../../lib/settings.js'
+const Settings = new AESettings();
 const messages = defineMessages({
     addExtension: {
         id: 'gui.gui.addExtension',
@@ -189,10 +189,12 @@ const GUIComponent = props => {
     useEffect(() => {
         if (!vm) return;
 
+
         const handleCommentEvent = (e) => {
             setCanShowReadme(updateCanShowReadme)
         };
         const showReadmeDefault = (e) => {
+            if (!Settings.get('enableREADMEAutoDisplay')) return
             for (const target of vm.runtime.targets) {
                 if (target.sprite.name == "README") {
                     loadData(target.comments);
@@ -460,7 +462,7 @@ const GUIComponent = props => {
                                 </TabList>
                                 <TabPanel className={tabClassNames.tabPanel}>
                                     <Box className={styles.blocksWrapper}>
-                                        <Blocks
+                                        {!isFullScreen && <Blocks
                                             key={`${blocksId}/${theme.id}`}
                                             canUseCloud={canUseCloud}
                                             grow={1}
@@ -472,7 +474,7 @@ const GUIComponent = props => {
                                             onOpenCustomExtensionModal={onOpenCustomExtensionModal}
                                             theme={theme}
                                             vm={vm}
-                                        />
+                                        />}
                                     </Box>
                                     <Box className={styles.extensionButtonContainer}>
                                         <button
