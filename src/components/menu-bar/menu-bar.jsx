@@ -101,6 +101,7 @@ import ninetiesLogo from './nineties_logo.svg';
 import catLogo from './cat_logo.svg';
 import prehistoricLogo from './prehistoric-logo.svg';
 import oldtimeyLogo from './oldtimey-logo.svg';
+import aeLogo from './logo.svg'
 
 import sharedMessages from '../../lib/shared-messages';
 
@@ -491,6 +492,10 @@ class MenuBar extends React.Component {
                 )}
             >
                 <div className={styles.mainMenu}>
+                    <img src={aeLogo} style={{
+                        width:'25px',
+                        marginLeft:'10px'
+                    }}/>
                     <div className={styles.fileGroup}>
                         {this.props.errors.length > 0 && <div>
                             <MenuLabel

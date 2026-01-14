@@ -17,9 +17,9 @@ const LoadExtensionModal = props => (
                     id="tw.loadExtension.multiple"
                 />
                 <ul>
-                    {Object.entries(props.extensions).map(([id, url]) => (
-                        <li key={id}>
-                            <strong>{id}</strong>
+                    {props.extensions.map((ext, index) => (
+                        <li key={ext.id || index}>
+                            <strong>{ext.id}</strong>
                         </li>
                     ))}
                 </ul>

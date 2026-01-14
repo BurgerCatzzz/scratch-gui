@@ -41,6 +41,8 @@ import TWWindChimeSubmitter from '../../containers/tw-windchime-submitter.jsx';
 import CustomThemeModal from '../../containers/tw-custom-theme-modal.jsx';
 import AEReadMe from '../../containers/ae-readme.jsx'
 import { loadData } from 'C:/AstraEditor/scratch-gui/src/components/ae-readme/ae-readme.jsx'
+import ExtensionManager from '../extension-chooser/extension-chooser.jsx';
+import PreviewExt from '../../containers/ae-preview-ext.jsx';
 
 import { STAGE_SIZE_MODES, FIXED_WIDTH, UNCONSTRAINED_NON_STAGE_WIDTH } from '../../lib/layout-constants';
 import { resolveStageSize } from '../../lib/screen-utils';
@@ -169,8 +171,13 @@ const GUIComponent = props => {
         customThemeVisible,
         readmeModalVisible,
         onOpenReadme,
+        extensionManagerVisible,
+        onRequestCloseExtensionManager,
+        onOpenExtensionLibrary,
+        previewExtVisible,
+        dispatch,
         ...componentProps
-    } = omit(props, 'dispatch');
+    } = omit(props, '');
     const updateCanShowReadme = () => {
         if (!vm.editingTarget || !vm.editingTarget.comments) {
             setCanShowReadme(false);
@@ -248,6 +255,15 @@ const GUIComponent = props => {
                 {invalidProjectModalVisible && <TWInvalidProjectModal />}
                 {customThemeVisible && <CustomThemeModal />}
                 {readmeModalVisible && <AEReadMe />}
+                {extensionManagerVisible && (
+                    <ExtensionManager
+                        vm={vm}
+                        onRequestClose={onRequestCloseExtensionManager}
+                        onOpenExtensionLibrary={onOpenExtensionLibrary}
+                        dispatch={dispatch}
+                    />
+                )}
+                {previewExtVisible && <PreviewExt />}
             </React.Fragment>
         );
 
@@ -530,7 +546,8 @@ const GUIComponent = props => {
     }}</MediaQuery>);
 };
 const mapDispatchToProps = dispatch => ({
-    onOpenReadme: () => dispatch(openReadme())
+    onOpenReadme: () => dispatch(openReadme()),
+    dispatch
 })
 GUIComponent.propTypes = {
     accountNavOpen: PropTypes.bool,
@@ -618,7 +635,13 @@ GUIComponent.propTypes = {
     unknownPlatformModalVisible: PropTypes.bool,
     invalidProjectModalVisible: PropTypes.bool,
     vm: PropTypes.instanceOf(VM).isRequired,
-    customThemeVisible: PropTypes.bool
+    customThemeVisible: PropTypes.bool,
+    readmeModalVisible: PropTypes.bool,
+    onOpenReadme: PropTypes.func,
+    extensionManagerVisible: PropTypes.bool,
+    onRequestCloseExtensionManager: PropTypes.func,
+    onOpenExtensionLibrary: PropTypes.func,
+    previewExtVisible: PropTypes.bool
 };
 GUIComponent.defaultProps = {
     backpackHost: null,
@@ -652,7 +675,8 @@ const mapStateToProps = state => ({
     stageSizeMode: state.scratchGui.stageSize.stageSize,
     theme: state.scratchGui.theme.theme,
     customThemeVisible: state.scratchGui.modals.customtheme,
-    readmeModalVisible: state.scratchGui.modals.readme
+    readmeModalVisible: state.scratchGui.modals.readme,
+    previewExtVisible: state.scratchGui.modals.previewExt
 });
 
 export default injectIntl(connect(

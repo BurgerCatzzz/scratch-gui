@@ -1,12 +1,14 @@
 import PropTypes from 'prop-types';
 import React from 'react';
 import bindAll from 'lodash.bindall';
-import {connect} from 'react-redux';
+import { connect } from 'react-redux';
 import log from '../lib/log';
 import CustomExtensionModalComponent from '../components/tw-custom-extension-modal/custom-extension-modal.jsx';
-import {closeCustomExtensionModal} from '../reducers/modals';
-import {manuallyTrustExtension, isTrustedExtension} from './tw-security-manager.jsx';
-import {getPersistedUnsandboxed, setPersistedUnsandboxed} from '../lib/tw-persisted-unsandboxed.js';
+import { closeCustomExtensionModal, openPreviewExt } from '../reducers/modals';
+import { setPreviewExtData } from '../reducers/ae-preview-ext-data';
+import { manuallyTrustExtension, isTrustedExtension } from './tw-security-manager.jsx';
+import { getPersistedUnsandboxed, setPersistedUnsandboxed } from '../lib/tw-persisted-unsandboxed.js';
+import AddonHooks from '../addons/hooks';
 /**
  * @param {Blob} blob Blob
  * @returns {Promise<string>} data: uri
@@ -18,7 +20,7 @@ const readAsDataURL = blob => new Promise((resolve, reject) => {
     reader.readAsDataURL(blob);
 });
 class CustomExtensionModal extends React.Component {
-    constructor (props) {
+    constructor(props) {
         super(props);
 
         bindAll(this, [
@@ -34,7 +36,9 @@ class CustomExtensionModal extends React.Component {
             'handleDragOver',
             'handleDragLeave',
             'handleDrop',
-            'handleChangeUnsandboxed'
+            'handleChangeUnsandboxed',
+            'getSVG',
+            'updatePreview'
         ]);
 
         this.state = {
@@ -42,14 +46,16 @@ class CustomExtensionModal extends React.Component {
             url: '',
             files: null,
             text: '',
-            unsandboxed: getPersistedUnsandboxed()
+            unsandboxed: getPersistedUnsandboxed(),
+            svgList: [],
+            urls: ""
         };
     }
 
     /**
      * @returns {Promise<string[]>} List of extension URLs to load.
      */
-    getExtensionURLs () {
+    getExtensionURLs() {
         if (this.state.type === 'url') {
             return Promise.resolve([
                 this.state.url
@@ -70,7 +76,7 @@ class CustomExtensionModal extends React.Component {
         return Promise.reject(new Error('Unknown type'));
     }
 
-    hasValidInput () {
+    hasValidInput() {
         if (this.state.type === 'url') {
             try {
                 const parsed = new URL(this.state.url);
@@ -95,44 +101,44 @@ class CustomExtensionModal extends React.Component {
         return false;
     }
 
-    handleChangeFiles (files) {
+    handleChangeFiles(files) {
         this.setState({
             files
+        }, () => {
+            this.updatePreview();
         });
     }
 
-    handleChangeURL (e) {
+    handleChangeURL(e) {
         this.setState({
             url: e.target.value
         });
     }
 
-    handleClose () {
+    handleClose() {
         this.props.onClose();
     }
 
-    handleKeyDown (e) {
+    handleKeyDown(e) {
         if (e.key === 'Enter' && this.hasValidInput()) {
             e.preventDefault();
             this.handleLoadExtension();
         }
     }
 
-    async handleLoadExtension () {
+    async handleLoadExtension() {
         this.handleClose();
         try {
-            const urls = await this.getExtensionURLs();
-
+            if (this.state.urls == '' )this.state.urls = await this.getExtensionURLs();
             if (this.state.type !== 'url') {
                 setPersistedUnsandboxed(this.state.unsandboxed);
                 if (this.state.unsandboxed) {
-                    for (const url of urls) {
+                    for (const url of this.state.urls) {
                         manuallyTrustExtension(url);
                     }
                 }
             }
-
-            for (const url of urls) {
+            for (const url of this.state.urls) {
                 await this.props.vm.extensionManager.loadExtensionURL(url);
             }
         } catch (err) {
@@ -141,71 +147,144 @@ class CustomExtensionModal extends React.Component {
             alert(err);
         }
     }
+    async getSVG() {
+        try {
+            this.state.urls = await this.getExtensionURLs();
+            if (this.state.type === 'url') return;
 
-    handleSwitchToFile () {
+            const Blockly = AddonHooks.blockly;
+            const workspace = AddonHooks.blocklyWorkspace;
+
+            if (!workspace) {
+                throw new Error('Blockly workspace not available');
+            }
+
+            for (const url of this.state.urls) {
+                // 1. 加载扩展
+                setPersistedUnsandboxed(this.state.unsandboxed);
+                if (this.state.unsandboxed) {
+                    manuallyTrustExtension(url);
+                }
+                await this.props.vm.extensionManager.loadExtensionURL(url);
+
+                // 2. 获取扩展的block信息
+                const blockInfoList = this.props.vm.runtime._blockInfo;
+                const extensionBlockInfo = blockInfoList.filter(info => info.blocks && info.blocks.length > 0);
+
+                if (extensionBlockInfo.length === 0) {
+                    throw new Error('No blocks found in extension');
+                }
+
+                const svgs = [];
+
+                for (const extInfo of extensionBlockInfo) {
+                    // 3. 导出SVG
+                    for (const blockInfo of extInfo.blocks) {
+                        // 跳过separator和没有info.opcode的block
+                        if (blockInfo.info.opcode == undefined) {
+                            continue;
+                        }
+
+                        const fullOpcode = extInfo.id + '_' + blockInfo.info.opcode;
+                        const block = workspace.newBlock(fullOpcode);
+                        block.initSvg();
+                        block.render();
+                        const svg = block.getSvgRoot().outerHTML;
+                        svgs.push(svg);
+                        block.dispose();
+
+                        // 控制台输出
+                        console.log(svg);
+                    }
+
+                    // 4. 卸载扩展
+                    this.props.vm.extensionManager.unloadExtension(extInfo.id);
+                }
+                this.setState({ svgList: svgs });
+            }
+        } catch (err) {
+            log.error(err);
+            this.setState({ svgList: [] });
+        }
+    }
+
+    async updatePreview() {
+        if (!this.hasValidInput()) {
+            this.setState({ svgList: [] });
+            return;
+        }
+        await this.getSVG();
+    }
+
+
+    handleSwitchToFile() {
         this.setState({
             type: 'file'
         });
     }
 
-    handleSwitchToURL () {
+    handleSwitchToURL() {
         this.setState({
             type: 'url'
         });
     }
 
-    handleSwitchToText () {
+    handleSwitchToText() {
         this.setState({
             type: 'text'
         });
     }
 
-    handleChangeText (e) {
+    handleChangeText(e) {
         this.setState({
             text: e.target.value
+        }, () => {
+            this.updatePreview();
         });
     }
 
-    handleDragOver (e) {
+    handleDragOver(e) {
         if (e.dataTransfer.types.includes('Files')) {
             e.preventDefault();
             e.dataTransfer.dropEffect = 'copy';
         }
     }
 
-    handleDragLeave () {
+    handleDragLeave() {
 
     }
 
-    handleDrop (e) {
+    handleDrop(e) {
         const files = e.dataTransfer.files;
         if (files.length) {
             e.preventDefault();
             this.setState({
                 type: 'file',
                 files
+            }, () => {
+                this.updatePreview();
             });
         }
     }
 
-    isUnsandboxed () {
+    isUnsandboxed() {
         if (this.state.type === 'url') {
             return isTrustedExtension(this.state.url);
         }
         return this.state.unsandboxed;
     }
 
-    canChangeUnsandboxed () {
+    canChangeUnsandboxed() {
         return this.state.type !== 'url';
     }
 
-    handleChangeUnsandboxed (e) {
+    handleChangeUnsandboxed(e) {
         this.setState({
             unsandboxed: e.target.checked
         });
     }
 
-    render () {
+    render() {
         return (
             <CustomExtensionModalComponent
                 canLoadExtension={this.hasValidInput()}
@@ -226,7 +305,10 @@ class CustomExtensionModal extends React.Component {
                 unsandboxed={this.isUnsandboxed()}
                 onChangeUnsandboxed={this.canChangeUnsandboxed() ? this.handleChangeUnsandboxed : null}
                 onLoadExtension={this.handleLoadExtension}
+                onGetSVG={this.getSVG}
+                dispatch={this.props.dispatch}
                 onClose={this.handleClose}
+                svgList={this.state.svgList}
             />
         );
     }
@@ -246,7 +328,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onClose: () => dispatch(closeCustomExtensionModal())
+    onClose: () => dispatch(closeCustomExtensionModal()),
+    dispatch
 });
 
 export default connect(
